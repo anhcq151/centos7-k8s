@@ -9,6 +9,7 @@ echo "[TASK 2] Copy kube admin config to Vagrant user .kube directory"
 mkdir /home/vagrant/.kube
 cp /etc/kubernetes/admin.conf /home/vagrant/.kube/config
 chown -R vagrant:vagrant /home/vagrant/.kube
+cp /home/vagrant/.kube/config /data
 
 # Deploy flannel network
 echo "[TASK 3] Deploy Calico network"

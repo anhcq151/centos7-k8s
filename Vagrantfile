@@ -72,7 +72,7 @@ Vagrant.configure("2") do |config|
 
             end
 
-            config.vm.provision "shell",  inline: "yum update -y"
+            config.vm.provision "shell",  inline: "yum update -y && yum install -y curl"
 
             if opts[:type] != "storage"
                 config.vm.provision "docker" do |d|
@@ -102,6 +102,7 @@ EOF
 
             if opts[:type] == "master"
                 config.vm.provision "shell", path: "bootstrap_master.sh"
+                config.vm.synced_folder ".\\data", "/data", type: "virtualbox" # comment this line if you don't want to sync folder data with k8s-head box
             elsif opts[:type] == "node"
                 config.vm.provision "shell", path: "bootstrap_worker.sh"
             elsif opts[:type] == "storage"
