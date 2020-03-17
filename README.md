@@ -17,6 +17,8 @@ All boxes are running CentOS 7.
 
 ## Network environment
 
+![](diagram.png)
+
 All hosts are placed under same subnet: `172.16.15.0/24`
 - 172.16.15.13 k8s-head
 - 172.16.15.14 k8s-node-1
@@ -38,6 +40,7 @@ Install Vagrant, Virtualbox on your host workstation and/or install `kubectl`, `
     ```
     git clone git@github.com:anhcq151/centos7-k8s.git
     ```
+    - Change to `centos7-k8s` folder
 
 2. Edit file `Vagrantfile`
    - Adjust values of variables `PROXY_HTTP_PORT` and `PROXY_HTTPS_PORT` to a number of your choice in range `30000 - 32767`
@@ -47,11 +50,11 @@ Install Vagrant, Virtualbox on your host workstation and/or install `kubectl`, `
 
     Install Vagrant plugin (recommended)
     ```
-    vagrant plugin install vagrant-vbguest vagrant-timezone
+    $ vagrant plugin install vagrant-vbguest vagrant-timezone
     ```
     Bring all up:
     ```
-    vagrant up
+    $ vagrant up
     ```
 
 4. Install `nginx-ingress`
@@ -59,9 +62,11 @@ Install Vagrant, Virtualbox on your host workstation and/or install `kubectl`, `
     - Adapt `$PROXY_HTTP_PORT` and `$PROXY_HTTPS_PORT` variables to match ones set in step 2.
     - Adjust value of variable `NAMESPACE` to name of your choice, this is name of k8s namespace where `nginx-ingress` will be installed into.
 
+    *Note: change "$(pwd)" in command below to the absolute path to `centos7-k8s` if you're not using Linux bash shell*
+
     ```
-    docker run -dit --mount type=bind,source=data/config,target=/root/.kube/config \
-        --mount type=bind,source=data/install_ingress.sh,target=/root/install_ingress.sh \
+    docker run -dit --mount type=bind,source="$(pwd)"/data/config,target=/root/.kube/config \
+        --mount type=bind,source="$(pwd)"/data/install_ingress.sh,target=/root/install_ingress.sh \
         -e NAMESPACE="loadbalancer" \
         -e PROXY_HTTP_PORT="30001" \
         -e PROXY_HTTPS_PORT="30002" \
@@ -69,6 +74,15 @@ Install Vagrant, Virtualbox on your host workstation and/or install `kubectl`, `
         --entrypoint /root/install_ingress.sh \
         quanganh151/kubectl_helm
     ```
+
+5. Deploy your app to k8s cluster
+
+    I created a test deployment: a nginx http web which show the default nginx welcome message. It's written in `terraform` for better fire-up and destroy after done.
+    After successfully applied it, can test by running `curl`:
+    ```
+    curl --verbose --header 'Host: nginx-web.local' 172.16.15.17
+    ```
+
 
 >Tested on my workstation: 
 >- OS: Windows 10 build 1909 x64
