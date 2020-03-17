@@ -1,5 +1,6 @@
 #!/bin/bash
 
+echo "---RUNNING BOOTSTRAP WORKER---"
 # Join worker nodes to the Kubernetes cluster
 echo "[TASK 1] Join node to Kubernetes Cluster"
 yum install -q -y sshpass >/dev/null 2>&1

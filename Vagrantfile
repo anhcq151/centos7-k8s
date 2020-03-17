@@ -1,6 +1,10 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+PROXY_HTTP_PORT = '30001'
+PROXY_HTTPS_PORT = '30002'
+TIMEZONE = "Asia/Ho_Chi_Minh"
+
 servers = [
     {
         :name => "k8s-head",
@@ -72,7 +76,7 @@ Vagrant.configure("2") do |config|
 
             end
 
-            config.vm.provision "shell",  inline: "yum update -y && yum install -y curl"
+            config.vm.provision "shell", path: "init.sh"
 
             if opts[:type] != "storage"
                 config.vm.provision "docker" do |d|
@@ -96,20 +100,50 @@ EOF
                     SHELL
                 end
 
-                config.vm.provision "shell", path: "bootstrap.sh"
 
             end
 
-            if opts[:type] == "master"
+            case opts[:type]
+            when "storage"
+                config.vm.provision "shell", path: "bootstrap_storage.sh"
+
+            when "lb"
+                config.vm.synced_folder ".\\nginx-lb", "/misc_data", type: "virtualbox"
+                # config.vm.provision "shell", path: "bootstrap_lb.sh"
+                config.vm.provision "shell" do |s|
+                    s.args = ["#{PROXY_HTTP_PORT}", "#{PROXY_HTTPS_PORT}"]
+                    s.inline = <<-SHELL
+                        export PROXY_HTTP_PORT="$1" PROXY_HTTPS_PORT="$2"
+                        envsubst '${PROXY_HTTP_PORT} ${PROXY_HTTPS_PORT}' < /misc_data/nginx.conf.tmpl > /misc_data/nginx.conf
+                    SHELL
+                end
+
+                config.vm.provision "docker" do |d|
+                    d.run "nginx-lb",
+                        image: "nginx:stable-alpine",
+                        args: "-v /misc_data/nginx.conf:/etc/nginx/nginx.conf:ro -v /misc_data/nginx_log:/var/log/nginx -p 80:#{PROXY_HTTP_PORT} -p 443:#{PROXY_HTTPS_PORT}",
+                        restart: "always"
+                end
+
+                config.vm.provision "shell" do |s|
+                    s.args = "#{TIMEZONE}"
+                    s.inline = <<-SHELL
+                        docker exec -i nginx-lb /bin/sh -c "apk add tzdata"
+                        docker exec -i nginx-lb /bin/sh -c "cp /usr/share/zoneinfo/$1 /etc/localtime"
+                        docker exec -i nginx-lb /bin/sh -c "apk del tzdata"
+                        docker exec -i nginx-lb /bin/sh -c "date"
+                    SHELL
+                end
+
+            when "master"
+                config.vm.provision "shell", path: "bootstrap_cluster.sh"
                 config.vm.provision "shell", path: "bootstrap_master.sh"
                 config.vm.synced_folder ".\\data", "/data", type: "virtualbox" # comment this line if you don't want to sync folder data with k8s-head box
-            elsif opts[:type] == "node"
-                config.vm.provision "shell", path: "bootstrap_worker.sh"
-            elsif opts[:type] == "storage"
-                config.vm.provision "shell", path: "bootstrap_storage.sh"
+
             else
-                config.vm.synced_folder ".\\nginx-lb", "/misc_data", type: "virtualbox"
-                config.vm.provision "shell", path: "boostrap_lb.sh"
+                config.vm.provision "shell", path: "bootstrap_cluster.sh"
+                config.vm.provision "shell", path: "bootstrap_worker.sh"
+
             end
 
         end

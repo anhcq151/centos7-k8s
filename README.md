@@ -13,7 +13,7 @@ Tools are used:
 
 All boxes are running CentOS 7.
 
-`kubectl` and `helm v3` are installed on master node `k8s-head` but you can install on your workstation, just simply copy `config` file in `~/.kube/config` on `k8s-head` to same location on your workstation.
+`kubectl` is installed on master node `k8s-head` but you can install on your workstation, just simply copy `config` file in `~/.kube/config` on `k8s-head` to same location on your workstation.
 
 ## Network environment
 
@@ -32,23 +32,18 @@ All hosts are placed under same subnet: `172.16.15.0/24`
 
 Install Vagrant, Virtualbox on your host workstation and/or install `kubectl`, `helm v3`
 
+*Let's rock it*
+
 1. Clone this repo
     ```
     git clone git@github.com:anhcq151/centos7-k8s.git
     ```
 
-~~2. Edit file `bootstrap_master.sh`:~~
-   - ~~Adjust values of variables `PROXY_HTTP_PORT` and `PROXY_HTTPS_PORT` to a number of your choice in range `30000 - 32767`~~
-
-3. Edit file `bootstrap_lb.sh`
+2. Edit file `Vagrantfile`
    - Adjust values of variables `PROXY_HTTP_PORT` and `PROXY_HTTPS_PORT` to a number of your choice in range `30000 - 32767`
-   - Adjust the load balancer timezone to your location, I hard-coded default timezone to `Asia/Ho_Chi_Minh`
-   - Adjust value of variable `NAMESPACE` to name of your choice, this is name of k8s namespace where `nginx-ingress` will be installed into.
+   - Adjust values of variable `TIMEZONE` to change load balancer timezone to your location, I put default timezone to `Asia/Ho_Chi_Minh`
 
-4. Edit file `Vagrantfile`:
-    - Adjust all boxes timezone to your location, I hard-coded default timezone to `Asia/Ho_Chi_Minh`
-
-5. Start provisioning:
+3. Start provisioning:
 
     Install Vagrant plugin (recommended)
     ```
@@ -59,13 +54,22 @@ Install Vagrant, Virtualbox on your host workstation and/or install `kubectl`, `
     vagrant up
     ```
 
-6. Install `nginx-ingress`
+4. Install `nginx-ingress`
 
-    Adapt `$NAMESPACE`, `$PROXY_HTTP_PORT` and `$PROXY_HTTPS_PORT` variable to ones set in step 2.
+    - Adapt `$PROXY_HTTP_PORT` and `$PROXY_HTTPS_PORT` variables to match ones set in step 2.
+    - Adjust value of variable `NAMESPACE` to name of your choice, this is name of k8s namespace where `nginx-ingress` will be installed into.
 
     ```
-    docker run -dit --mount type=bind,source=data/config,target=/root/.kube/config --mount type=bind,source=data/install_ingress.sh,target=/root/install_ingress.sh -e NAMESPACE="loadbalancer" -e PROXY_HTTP_PORT="30001" -e PROXY_HTTPS_PORT="30002" --name install_ingress --entrypoint /root/install_ingress.sh quanganh151/kubectl_helm
+    docker run -dit --mount type=bind,source=data/config,target=/root/.kube/config \
+        --mount type=bind,source=data/install_ingress.sh,target=/root/install_ingress.sh \
+        -e NAMESPACE="loadbalancer" \
+        -e PROXY_HTTP_PORT="30001" \
+        -e PROXY_HTTPS_PORT="30002" \
+        --name install_ingress \
+        --entrypoint /root/install_ingress.sh \
+        quanganh151/kubectl_helm
     ```
+
 >Tested on my workstation: 
 >- OS: Windows 10 build 1909 x64
 >- vagrant version 2.2.7

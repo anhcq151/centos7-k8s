@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "---RUNNING BOOTSTRAP MASTER---"
+
 # Initialize Kubernetes
 echo "[TASK 1] Initialize Kubernetes Cluster"
 kubeadm init --apiserver-advertise-address=172.16.15.13 --pod-network-cidr=192.168.0.0/16 >> /root/kubeinit.log 2>/dev/null
