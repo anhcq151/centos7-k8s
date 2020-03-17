@@ -3,15 +3,15 @@
 check=""
 case $check in
     "${NAMESPACE}")
-      print "namespace is required"
+      echo "namespace is required"
       exit 1
       ;;
     "${PROXY_HTTP_PORT}")
-      print "PROXY_HTTP_PORT is required"
+      echo "PROXY_HTTP_PORT is required"
       exit 1
       ;;
     "${PROXY_HTTPS_PORT}")
-      print "PROXY_HTTPS_PORT is required"
+      echo "PROXY_HTTPS_PORT is required"
       exit 1
       ;;
 esac
