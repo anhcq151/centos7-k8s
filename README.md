@@ -66,6 +66,7 @@ Install Vagrant, Virtualbox, Docker on your host workstation and/or install `kub
     *Note: change "$(pwd)" in command below to the absolute path to `centos7-k8s` if you're not using Linux bash shell*
 
     ```
+    $ chmod +x data/install_ingress.sh
     $ docker run -dit --mount type=bind,source="$(pwd)"/data/config,target=/root/.kube/config \
         --mount type=bind,source="$(pwd)"/data/install_ingress.sh,target=/root/install_ingress.sh \
         -e NAMESPACE="loadbalancer" \
@@ -80,9 +81,11 @@ Install Vagrant, Virtualbox, Docker on your host workstation and/or install `kub
 
     - Adjust value of variable `NAMESPACE` to name of your choice, this is name of k8s namespace where `nfs-client-provisioner` will be installed into.
     ```
-    $ docker run -dit --mount type=bind,source="$(pwd)"/data/install_nfs.sh,target=/root/install_nfs.sh \
+    $ chmod +x data/install_nfs.sh
+    $ docker run -dit --mount type=bind,source="$(pwd)"/data/config,target=/root/.kube/config \
+        --mount type=bind,source="$(pwd)"/data/install_nfs.sh,target=/root/install_nfs.sh \
         -e NAMESPACE="nfs-storage" \
-        --name isntall_nfs \
+        --name install_nfs \
         --entrypoint /root/install_nfs.sh \
         quanganh151/kubectl_helm
     ```

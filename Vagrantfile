@@ -80,24 +80,7 @@ Vagrant.configure("2") do |config|
 
             if opts[:type] != "storage"
                 config.vm.provision "docker" do |d|
-                    d.post_install_provision "shell", inline: <<-SHELL
-                        cat > /etc/docker/daemon.json <<EOF
-{
-  "exec-opts": ["native.cgroupdriver=systemd"],
-  "log-driver": "json-file",
-  "log-opts": {
-    "max-size": "100m"
-  },
-  "storage-driver": "overlay2",
-  "storage-opts": [
-    "overlay2.override_kernel_check=true"
-  ]
-}
-EOF
-                        mkdir -p /etc/systemd/system/docker.service.d
-                        systemctl daemon-reload
-                        systemctl restart docker
-                    SHELL
+                    d.post_install_provision "shell", path: "config_docker.sh"
                 end
 
 
@@ -109,7 +92,6 @@ EOF
 
             when "lb"
                 config.vm.synced_folder ".\\nginx-lb", "/misc_data", type: "virtualbox"
-                # config.vm.provision "shell", path: "bootstrap_lb.sh"
                 config.vm.provision "shell" do |s|
                     s.args = ["#{PROXY_HTTP_PORT}", "#{PROXY_HTTPS_PORT}"]
                     s.inline = <<-SHELL
@@ -138,7 +120,7 @@ EOF
             when "master"
                 config.vm.provision "shell", path: "bootstrap_cluster.sh"
                 config.vm.provision "shell", path: "bootstrap_master.sh"
-                config.vm.synced_folder ".\\data", "/data", type: "virtualbox" # comment this line if you don't want to sync folder data with k8s-head box
+                config.vm.synced_folder ".\\data", "/data", type: "virtualbox"
 
             else
                 config.vm.provision "shell", path: "bootstrap_cluster.sh"
